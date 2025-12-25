@@ -17,19 +17,21 @@
             background-color: #050200;
             overflow: hidden;
             font-family: 'Cinzel', serif;
-            -webkit-font-smoothing: antialiased;
+            -webkit-font-smoothing: antialiased; /* Giúp font chữ CSS sắc nét hơn trên Mac/iOS */
+            position: fixed; 
         }
 
-        /* --- CANVAS --- */
         canvas {
             display: block;
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             z-index: 1;
+            /* Đảm bảo canvas không bị chọn khi nhấn giữ */
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- VIGNETTE OVERLAY --- */
+        /* VIGNETTE */
         .vignette {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -38,7 +40,7 @@
             pointer-events: none;
         }
 
-        /* --- UI LAYER WRAPPER --- */
+        /* --- UI LAYER --- */
         #ui-layer {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -50,7 +52,7 @@
             align-items: center;
         }
 
-        /* --- SCENE 1: THE CARD --- */
+        /* --- CARD STYLES --- */
         #card-overlay {
             position: absolute;
             width: 100%; height: 100%;
@@ -60,7 +62,7 @@
             justify-content: center;
             align-items: center;
             pointer-events: auto;
-            transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 1.2s ease;
             z-index: 20;
         }
 
@@ -72,68 +74,55 @@
             text-align: center;
             border-radius: 8px;
             border: 1px solid rgba(255, 215, 0, 0.4);
-            box-shadow: 
-                0 0 0 10px #1a0506, 
-                0 0 0 12px #b38f00, 
-                0 30px 60px rgba(0,0,0,0.9);
+            box-shadow: 0 0 0 8px #1a0506, 0 0 0 10px #b38f00, 0 30px 60px rgba(0,0,0,0.9);
             position: relative;
             transform: scale(1);
             transition: transform 0.6s ease;
         }
 
         .card-corner {
-            position: absolute;
-            width: 30px; height: 30px;
+            position: absolute; width: 20px; height: 20px;
             border: 2px solid #b38f00; opacity: 0.8;
         }
-        .tl { top: 15px; left: 15px; border-right: none; border-bottom: none; }
-        .tr { top: 15px; right: 15px; border-left: none; border-bottom: none; }
-        .bl { bottom: 15px; left: 15px; border-right: none; border-top: none; }
-        .br { bottom: 15px; right: 15px; border-left: none; border-top: none; }
+        .tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+        .tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+        .bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+        .br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
 
         .card-text {
             font-family: 'Playfair Display', serif;
             color: #fff0c4;
             font-size: 1.6rem;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             font-style: italic;
             text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-            line-height: 1.6;
-            letter-spacing: 0.5px;
+            line-height: 1.5;
         }
 
         /* Wax Seal */
         .wax-seal-container {
-            position: relative;
-            display: flex; justify-content: center; align-items: center;
+            display: flex; justify-content: center;
         }
         .wax-seal {
-            width: 90px; height: 90px;
+            width: 80px; height: 80px;
             background: radial-gradient(circle at 30% 30%, #ff5e5e, #8a0000);
             border-radius: 50%;
             box-shadow: inset 0 0 20px rgba(50, 0, 0, 0.8), 0 5px 15px rgba(0,0,0,0.5);
-            border: 4px solid #a31818; 
-            outline: 2px dashed rgba(255, 215, 0, 0.4); outline-offset: -8px;
+            border: 4px solid #a31818;
+            outline: 2px dashed rgba(255, 215, 0, 0.4); outline-offset: -6px;
             cursor: pointer;
             display: flex; justify-content: center; align-items: center;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .wax-seal span {
             font-family: 'Great Vibes', cursive;
-            color: #ffd700; font-size: 1.8rem; font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(82, 16, 16, 0.9);
+            color: #ffd700; font-size: 1.6rem; font-weight: bold;
             transform: rotate(-5deg);
         }
-        .wax-seal:hover {
-            transform: scale(1.1) rotate(5deg);
-            box-shadow: 0 0 25px rgba(255, 50, 50, 0.5);
-            background: radial-gradient(circle at 30% 30%, #ff7070, #9e0000);
-        }
 
-        /* --- SCENE 2: WISH BUTTON (Fixed) --- */
+        /* --- BUTTON STYLES --- */
         #wish-container {
             position: absolute;
-            bottom: 40px; /* Cố định vị trí an toàn */
+            bottom: 50px; 
             width: 100%;
             text-align: center;
             pointer-events: auto;
@@ -144,12 +133,12 @@
         }
 
         .btn-wish {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 215, 0, 0.4);
             color: #fff;
-            padding: 14px 45px;
+            padding: 14px 40px;
             border-radius: 50px;
             font-family: 'Cinzel', serif;
             font-size: 1rem;
@@ -157,34 +146,19 @@
             cursor: pointer;
             transition: all 0.4s ease;
             text-transform: uppercase;
-            letter-spacing: 4px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-            position: relative; overflow: hidden;
+            letter-spacing: 3px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
-        .btn-wish::before {
-            content: ''; position: absolute; top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: 0.6s;
-        }
-        .btn-wish:hover {
-            background: rgba(255, 215, 0, 0.2);
-            border-color: #FFD700;
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
-            transform: translateY(-3px);
-        }
-        .btn-wish:hover::before { left: 100%; }
 
-        /* --- MOBILE TWEAKS --- */
+        /* --- MOBILE MEDIA QUERIES --- */
         @media only screen and (max-width: 768px) {
             .card-body { width: 90%; padding: 40px 20px; }
             .card-text { font-size: 1.3rem; margin-bottom: 30px; }
             .wax-seal { width: 80px; height: 80px; }
-            /* Đẩy nút lên một chút trên mobile để tránh chạm đáy màn hình */
-            #wish-container { bottom: 10%; } 
+            #wish-container { bottom: 12%; } 
         }
 
-        .hidden-overlay { opacity: 0 !important; transform: scale(1.15) !important; pointer-events: none !important; }
+        .hidden-overlay { opacity: 0 !important; transform: scale(1.1) !important; pointer-events: none !important; }
         .visible-ui { opacity: 1 !important; transform: translateY(0) !important; }
     </style>
 </head>
@@ -198,7 +172,7 @@
             <div class="card-body">
                 <div class="card-corner tl"></div><div class="card-corner tr"></div>
                 <div class="card-corner bl"></div><div class="card-corner br"></div>
-                <div class="card-text">A Christmas Wish for Everyone<br>From PH with love💌💖</div>
+                <div class="card-text">A Christmas Wish for Everyone<br>From 🌸 with love💌💖</div>
                 <div class="wax-seal-container">
                     <div class="wax-seal" onclick="openLetter()"><span>Open</span></div>
                 </div>
@@ -211,7 +185,7 @@
     </div>
 
     <script>
-        /* ================= STATE ================= */
+        // State
         let isTreeVisible = false;
         let isSnowing = false;
 
@@ -219,7 +193,7 @@
             document.getElementById('card-overlay').classList.add('hidden-overlay');
             setTimeout(() => {
                 document.getElementById('wish-container').classList.add('visible-ui');
-            }, 1200);
+            }, 1000);
             isTreeVisible = true;
         }
 
@@ -228,29 +202,28 @@
                 isSnowing = true;
                 initSnow();
                 const btn = document.querySelector('.btn-wish');
-                btn.style.transition = "opacity 1s, transform 1s";
                 btn.style.opacity = '0';
                 btn.style.transform = 'scale(0.8)';
                 btn.style.pointerEvents = 'none';
             }
         }
 
-        /* ================= CANVAS ENGINE ================= */
+        // --- Canvas Config ---
         const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d', { alpha: false });
-
+        // Sử dụng alpha: true đôi khi giúp cải thiện hiệu suất trên một số trình duyệt mobile
+        const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
         let width, height;
-        let particles = [];
-        let snowParticles = [];
+        let particles = [], snowParticles = [];
         let time = 0;
 
+        // Cấu hình
         const CONFIG = {
             particleCount: 900,
             ribbonCount: 250,
             snowCount: 250, 
-            baseRadiusRatio: 0.35,
-            heightRatio: 0.70, 
-            rotationSpeed: 0.006, 
+            baseRadiusRatio: 0.35, 
+            heightRatio: 0.70,
+            rotationSpeed: 0.025,
             focalLength: 800,
             colors: {
                 gold:   { h: 45,  s: 100, l: 60 },
@@ -262,7 +235,6 @@
 
         const random = (min, max) => Math.random() * (max - min) + min;
 
-        // --- Tree Particle ---
         class TreeParticle {
             constructor(isRibbon, index, total) {
                 this.isRibbon = isRibbon;
@@ -270,18 +242,24 @@
             }
             init(index, total) {
                 let h = (index / total);
-                if (!this.isRibbon) h += random(-0.02, 0.02); 
+                if (!this.isRibbon) h += random(-0.02, 0.02);
                 if (h < 0) h = 0; if (h > 1) h = 1;
                 this.hPercent = h;
 
+                // Radius logic
                 const maxR = Math.min(width, height) * CONFIG.baseRadiusRatio;
                 const r = maxR * (1 - h);
-                this.angle = this.isRibbon ? h * Math.PI * 16 : random(0, Math.PI * 2);
                 this.radiusBase = r;
 
-                const treeH = height * CONFIG.heightRatio;
-                this.yBase = (h - 0.5) * -treeH + (height * 0.02);
+                this.angle = this.isRibbon ? h * Math.PI * 16 : random(0, Math.PI * 2);
 
+                // Y Position logic
+                const treeH = height * CONFIG.heightRatio; 
+                const yOffset = (width < 768) ? (height * 0.02) : (height * 0.02);
+                
+                this.yBase = (h - 0.5) * -treeH + yOffset;
+
+                // Colors
                 if (this.isRibbon) {
                     this.sizeBase = random(2, 4);
                     this.hue = CONFIG.colors.gold.h;
@@ -304,15 +282,12 @@
             update() {
                 this.currentAngle = this.angle + (time * CONFIG.rotationSpeed);
                 const sway = Math.sin(time * 0.5 + this.hPercent * 5) * 5 * (1 - this.hPercent);
-
                 const x3d = Math.cos(this.currentAngle) * this.radiusBase + sway;
                 const z3d = Math.sin(this.currentAngle) * this.radiusBase;
-                const y3d = this.yBase;
                 const depth = CONFIG.focalLength + z3d;
                 const scale = CONFIG.focalLength / depth;
-
                 this.x2d = width / 2 + x3d * scale;
-                this.y2d = height / 2 + y3d * scale;
+                this.y2d = height / 2 + this.yBase * scale;
                 this.scale = scale;
                 this.zDepth = z3d;
 
@@ -335,7 +310,6 @@
             }
         }
 
-        // --- Snowflake ---
         class Snowflake {
             constructor() { this.reset(true); }
             reset(initial = false) {
@@ -387,9 +361,33 @@
             }, 10);
         }
 
+        // === CHỈNH SỬA QUAN TRỌNG ĐỂ TĂNG ĐỘ NÉT (HIGH-DPI SCALING) ===
         function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
+            // 1. Lấy tỷ lệ điểm ảnh của thiết bị (ví dụ: Retina là 2 hoặc 3)
+            const dpr = window.devicePixelRatio || 1;
+
+            // 2. Lấy kích thước logic của cửa sổ
+            width = window.innerWidth;
+            height = window.innerHeight;
+
+            // 3. Đặt kích thước nội bộ của canvas theo độ phân giải thực (nhân với DPR)
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+
+            // 4. Dùng CSS để ép canvas hiển thị đúng kích thước logic trên màn hình
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+
+            // 5. Scale cọ vẽ để mọi thứ vẽ ra tự động tương thích với độ phân giải mới
+            // Reset transform cũ trước khi scale để tránh bị chồng chéo khi resize nhiều lần
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+
+            // Giữ nguyên logic cấu hình cũ
+            CONFIG.heightRatio = 0.70;
+            CONFIG.baseRadiusRatio = 0.35;
+
+            // Re-init particles
             if (particles.length > 0) {
                  particles.forEach((p, i) => {
                      const isRibbon = i >= CONFIG.particleCount;
@@ -409,114 +407,78 @@
 
         function drawStar() {
             const treeH = height * CONFIG.heightRatio;
-            const topY = height/2 - treeH/2 + (height * 0.02);
-            const cx = width / 2;
-            const cy = topY;
+            const yOffset = (width < 768) ? (height * 0.02) : (height * 0.02);
+            const safeTopY = (height / 2) - (treeH / 2) + yOffset;
 
-            // Pulse
             const pulse = 1 + Math.sin(time * 4) * 0.1;
             const size = (Math.min(width, height) * 0.05) * pulse;
 
             ctx.save();
-            ctx.translate(cx, cy);
+            ctx.translate(width/2, safeTopY);
 
             // Rays
             ctx.save();
             ctx.rotate(time * 0.2); 
             ctx.globalCompositeOperation = 'lighter';
-            const rayCount = 8;
-            for(let i=0; i<rayCount; i++) {
-                ctx.rotate((Math.PI * 2) / rayCount);
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(0, -size * 3);
+            for(let i=0; i<8; i++) {
+                ctx.rotate((Math.PI * 2) / 8);
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -size * 3);
                 ctx.strokeStyle = `rgba(255, 223, 100, ${0.1 + Math.sin(time * 2)*0.1})`;
-                ctx.lineWidth = 4;
-                ctx.stroke();
+                ctx.lineWidth = 4; ctx.stroke();
             }
             ctx.restore();
 
-            // Glow
-            const glow = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, size * 2.5);
-            glow.addColorStop(0, "rgba(255, 255, 200, 0.8)");
-            glow.addColorStop(0.4, "rgba(255, 215, 0, 0.3)");
-            glow.addColorStop(1, "transparent");
-            ctx.fillStyle = glow;
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 2.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Star Body
-            ctx.shadowBlur = 40; 
-            ctx.shadowColor = "#FFD700";
-            ctx.fillStyle = "#FFFACD";
+            // Body
+            ctx.shadowBlur = 40; ctx.shadowColor = "#FFD700"; ctx.fillStyle = "#FFFACD";
             ctx.beginPath();
             for (let i = 0; i < 5; i++) {
                 ctx.lineTo(Math.cos((18 + i*72)*0.01745) * size, -Math.sin((18 + i*72)*0.01745) * size);
                 ctx.lineTo(Math.cos((54 + i*72)*0.01745) * (size/2.2), -Math.sin((54 + i*72)*0.01745) * (size/2.2));
             }
-            ctx.closePath();
-            ctx.fill();
-            ctx.fillStyle = "#FFFFFF";
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.2, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         }
 
-        // --- LOGIC CHÍNH: VẼ CHỮ (Đã sửa lỗi mobile) ---
         function drawText() {
             if (!isTreeVisible) return;
-
-            // Kiểm tra mobile
             const isMobile = width < 768;
 
             const textGrad = ctx.createLinearGradient(width/2 - 150, 0, width/2 + 150, 0);
-            textGrad.addColorStop(0, '#a67c00'); 
-            textGrad.addColorStop(0.5, '#ffeaad'); 
-            textGrad.addColorStop(1, '#a67c00');
-            ctx.shadowBlur = 20; 
-            ctx.shadowColor = 'rgba(255, 200, 0, 0.3)';
+            textGrad.addColorStop(0, '#a67c00'); textGrad.addColorStop(0.5, '#ffeaad'); textGrad.addColorStop(1, '#a67c00');
             ctx.fillStyle = textGrad;
-            ctx.textAlign = 'center'; 
-            ctx.textBaseline = 'bottom';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.shadowBlur = 15; ctx.shadowColor = 'rgba(255, 200, 0, 0.3)';
 
             if (isMobile) {
-                // == MOBILE MODE ==
-                // 1. Merry Christmas (To hơn một chút)
-                const titleSize = width * 0.085; // Cỡ chữ theo % màn hình
-                ctx.font = `700 ${titleSize}px "Cinzel", serif`;
-                
-                // Đẩy chữ lên cao hơn để tránh nút bấm (height - 30%)
+                const titleSize = width * 0.085; 
+                const subSize = width * 0.045;
                 const startY = height - (height * 0.25);
+                
+                ctx.font = `700 ${titleSize}px "Cinzel", serif`;
                 ctx.fillText("Merry Christmas", width/2, startY);
 
-                // 2. Lời chúc dài -> Tách thành 2 dòng
-                const subSize = width * 0.045; // Cỡ chữ nhỏ hơn
                 ctx.font = `400 ${subSize}px "Cinzel", serif`;
-                
-                // Dòng 1: Wishing everyone
                 ctx.fillText("Wishing everyone", width/2, startY + (subSize * 1.5));
-                // Dòng 2: happiness every day
                 ctx.fillText("happiness every day☃️", width/2, startY + (subSize * 3.0));
 
             } else {
-                // == DESKTOP MODE (Giữ nguyên) ==
-                const desktopSize = Math.min(width, height) * 0.05;
-                ctx.font = `700 ${desktopSize}px "Cinzel", serif`;
-                
+                // Desktop
+                const size = Math.min(width, height) * 0.05;
+                ctx.font = `700 ${size}px "Cinzel", serif`;
+                ctx.textBaseline = 'bottom';
                 ctx.fillText("Merry Christmas", width/2, height - 155); 
                 ctx.fillText("Wishing everyone happiness every day☃️", width/2, height - 110);
             }
-
             ctx.shadowBlur = 0;
         }
 
         function loop() {
             requestAnimationFrame(loop);
             time += 0.01;
+            // Sử dụng clearRect thay vì vẽ lại nền để tối ưu hiệu suất khi độ phân giải cao
+            ctx.clearRect(0, 0, width, height); 
             drawBackground();
-            if (isSnowing) { snowParticles.forEach(p => { p.update(); p.draw(ctx); }); }
+            if (isSnowing) snowParticles.forEach(p => { p.update(); p.draw(ctx); });
             particles.forEach(p => p.update());
             particles.sort((a, b) => b.zDepth - a.zDepth);
             ctx.globalCompositeOperation = 'lighter';
