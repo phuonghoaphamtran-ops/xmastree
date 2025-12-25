@@ -17,7 +17,7 @@
             background-color: #050200;
             overflow: hidden;
             font-family: 'Cinzel', serif;
-            -webkit-font-smoothing: antialiased; /* Giúp font chữ CSS sắc nét hơn trên Mac/iOS */
+            -webkit-font-smoothing: antialiased; 
             position: fixed; 
         }
 
@@ -26,21 +26,20 @@
             position: absolute;
             top: 0; left: 0;
             z-index: 1;
-            /* Đảm bảo canvas không bị chọn khi nhấn giữ */
             user-select: none; 
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* VIGNETTE */
+        /* VIGNETTE - Giữ lại để làm tối góc */
         .vignette {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
+            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.9) 100%);
             z-index: 5;
             pointer-events: none;
         }
 
-        /* --- UI LAYER --- */
+        /* --- UI LAYER (KHÔNG ĐỔI) --- */
         #ui-layer {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -210,17 +209,20 @@
 
         // --- Canvas Config ---
         const canvas = document.getElementById('canvas');
-        // Sử dụng alpha: true đôi khi giúp cải thiện hiệu suất trên một số trình duyệt mobile
         const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
         let width, height;
         let particles = [], snowParticles = [];
+        // === MỚI: Mảng chứa các yếu tố nền ===
+        let bgStars = [], bokehLights = []; 
         let time = 0;
 
-        // Cấu hình
         const CONFIG = {
             particleCount: 900,
             ribbonCount: 250,
-            snowCount: 250, 
+            snowCount: 250,
+            // === MỚI: Số lượng sao và bokeh nền ===
+            bgStarCount: 200,
+            bokehCount: 30, 
             baseRadiusRatio: 0.35, 
             heightRatio: 0.70,
             rotationSpeed: 0.025,
@@ -235,6 +237,64 @@
 
         const random = (min, max) => Math.random() * (max - min) + min;
 
+        // === CLASS MỚI: Hạt sao nền (Distant Stars) ===
+        class BGStar {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = random(0, width);
+                this.y = random(0, height * 0.8); // Chỉ xuất hiện ở phần trên
+                this.size = random(0.5, 1.5);
+                this.baseAlpha = random(0.2, 0.6);
+                this.twinkleSpeed = random(0.02, 0.05);
+                this.twinkleOffset = random(0, Math.PI * 2);
+            }
+            draw(ctx) {
+                const alpha = this.baseAlpha + Math.sin(time * this.twinkleSpeed + this.twinkleOffset) * 0.2;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 200, ${alpha})`;
+                ctx.fill();
+            }
+        }
+
+        // === CLASS MỚI: Hiệu ứng Bokeh ấm áp ===
+        class BokehLight {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = random(0, width);
+                this.y = random(0, height);
+                this.size = random(50, 150); // Kích thước lớn, mờ
+                this.hue = random(30, 50); // Màu vàng ấm/cam
+                this.speedX = random(-0.2, 0.2); // Trôi rất chậm
+                this.speedY = random(-0.1, 0.1);
+                this.alphaOffset = random(0, Math.PI * 2);
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                // Wrap around screen
+                if (this.x < -this.size) this.x = width + this.size;
+                if (this.x > width + this.size) this.x = -this.size;
+                if (this.y < -this.size) this.y = height + this.size;
+                if (this.y > height + this.size) this.y = -this.size;
+            }
+            draw(ctx) {
+                // Hiệu ứng pulse nhẹ cho độ mờ
+                const alpha = 0.05 + Math.sin(time * 0.5 + this.alphaOffset) * 0.02;
+                
+                // Vẽ bằng radial gradient để tạo độ mờ mềm mại
+                const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+                grad.addColorStop(0, `hsla(${this.hue}, 100%, 60%, ${alpha})`);
+                grad.addColorStop(1, `hsla(${this.hue}, 100%, 60%, 0)`);
+                
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // --- Tree Particle (GIỮ NGUYÊN) ---
         class TreeParticle {
             constructor(isRibbon, index, total) {
                 this.isRibbon = isRibbon;
@@ -245,21 +305,14 @@
                 if (!this.isRibbon) h += random(-0.02, 0.02);
                 if (h < 0) h = 0; if (h > 1) h = 1;
                 this.hPercent = h;
-
-                // Radius logic
                 const maxR = Math.min(width, height) * CONFIG.baseRadiusRatio;
                 const r = maxR * (1 - h);
                 this.radiusBase = r;
-
                 this.angle = this.isRibbon ? h * Math.PI * 16 : random(0, Math.PI * 2);
-
-                // Y Position logic
                 const treeH = height * CONFIG.heightRatio; 
                 const yOffset = (width < 768) ? (height * 0.02) : (height * 0.02);
-                
                 this.yBase = (h - 0.5) * -treeH + yOffset;
 
-                // Colors
                 if (this.isRibbon) {
                     this.sizeBase = random(2, 4);
                     this.hue = CONFIG.colors.gold.h;
@@ -310,6 +363,7 @@
             }
         }
 
+        // --- Snowflake (GIỮ NGUYÊN) ---
         class Snowflake {
             constructor() { this.reset(true); }
             reset(initial = false) {
@@ -347,6 +401,12 @@
         function init() {
             resize();
             window.addEventListener('resize', resize);
+            
+            // Khởi tạo các yếu tố nền
+            for(let i=0; i<CONFIG.bgStarCount; i++) bgStars.push(new BGStar());
+            for(let i=0; i<CONFIG.bokehCount; i++) bokehLights.push(new BokehLight());
+
+            // Khởi tạo cây
             for(let i=0; i<CONFIG.particleCount; i++) particles.push(new TreeParticle(false, i, CONFIG.particleCount));
             for(let i=0; i<CONFIG.ribbonCount; i++) particles.push(new TreeParticle(true, i, CONFIG.ribbonCount));
             loop();
@@ -361,33 +421,24 @@
             }, 10);
         }
 
-        // === CHỈNH SỬA QUAN TRỌNG ĐỂ TĂNG ĐỘ NÉT (HIGH-DPI SCALING) ===
         function resize() {
-            // 1. Lấy tỷ lệ điểm ảnh của thiết bị (ví dụ: Retina là 2 hoặc 3)
             const dpr = window.devicePixelRatio || 1;
-
-            // 2. Lấy kích thước logic của cửa sổ
             width = window.innerWidth;
             height = window.innerHeight;
-
-            // 3. Đặt kích thước nội bộ của canvas theo độ phân giải thực (nhân với DPR)
             canvas.width = width * dpr;
             canvas.height = height * dpr;
-
-            // 4. Dùng CSS để ép canvas hiển thị đúng kích thước logic trên màn hình
             canvas.style.width = `${width}px`;
             canvas.style.height = `${height}px`;
-
-            // 5. Scale cọ vẽ để mọi thứ vẽ ra tự động tương thích với độ phân giải mới
-            // Reset transform cũ trước khi scale để tránh bị chồng chéo khi resize nhiều lần
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.scale(dpr, dpr);
 
-            // Giữ nguyên logic cấu hình cũ
             CONFIG.heightRatio = 0.70;
             CONFIG.baseRadiusRatio = 0.35;
 
-            // Re-init particles
+            // Reset các yếu tố nền khi resize
+            bgStars.forEach(s => s.reset());
+            bokehLights.forEach(b => b.reset());
+
             if (particles.length > 0) {
                  particles.forEach((p, i) => {
                      const isRibbon = i >= CONFIG.particleCount;
@@ -398,25 +449,38 @@
             }
         }
 
-        function drawBackground() {
+        // === HÀM VẼ NỀN MỚI (ĐẸP HƠN) ===
+        function drawMagicalBackground() {
+            // 1. Lớp nền tối cơ bản
             const grad = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, height);
-            grad.addColorStop(0, '#1a1005'); grad.addColorStop(0.5, '#0f0500'); grad.addColorStop(1, '#000000');
+            grad.addColorStop(0, '#1a1005'); 
+            grad.addColorStop(0.6, '#0a0300');
+            grad.addColorStop(1, '#000000');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, width, height);
+
+            // 2. Vẽ các vì sao xa (nhấp nháy nhẹ)
+            bgStars.forEach(star => star.draw(ctx));
+
+            // 3. Vẽ hiệu ứng Bokeh ấm áp (chế độ hòa trộn ánh sáng)
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            bokehLights.forEach(bokeh => {
+                bokeh.update();
+                bokeh.draw(ctx);
+            });
+            ctx.restore();
         }
 
         function drawStar() {
             const treeH = height * CONFIG.heightRatio;
             const yOffset = (width < 768) ? (height * 0.02) : (height * 0.02);
             const safeTopY = (height / 2) - (treeH / 2) + yOffset;
-
             const pulse = 1 + Math.sin(time * 4) * 0.1;
             const size = (Math.min(width, height) * 0.05) * pulse;
 
             ctx.save();
             ctx.translate(width/2, safeTopY);
-
-            // Rays
             ctx.save();
             ctx.rotate(time * 0.2); 
             ctx.globalCompositeOperation = 'lighter';
@@ -427,8 +491,6 @@
                 ctx.lineWidth = 4; ctx.stroke();
             }
             ctx.restore();
-
-            // Body
             ctx.shadowBlur = 40; ctx.shadowColor = "#FFD700"; ctx.fillStyle = "#FFFACD";
             ctx.beginPath();
             for (let i = 0; i < 5; i++) {
@@ -442,7 +504,6 @@
         function drawText() {
             if (!isTreeVisible) return;
             const isMobile = width < 768;
-
             const textGrad = ctx.createLinearGradient(width/2 - 150, 0, width/2 + 150, 0);
             textGrad.addColorStop(0, '#a67c00'); textGrad.addColorStop(0.5, '#ffeaad'); textGrad.addColorStop(1, '#a67c00');
             ctx.fillStyle = textGrad;
@@ -453,16 +514,12 @@
                 const titleSize = width * 0.085; 
                 const subSize = width * 0.045;
                 const startY = height - (height * 0.25);
-                
                 ctx.font = `700 ${titleSize}px "Cinzel", serif`;
                 ctx.fillText("Merry Christmas", width/2, startY);
-
                 ctx.font = `400 ${subSize}px "Cinzel", serif`;
                 ctx.fillText("Wishing everyone", width/2, startY + (subSize * 1.5));
                 ctx.fillText("happiness every day☃️", width/2, startY + (subSize * 3.0));
-
             } else {
-                // Desktop
                 const size = Math.min(width, height) * 0.05;
                 ctx.font = `700 ${size}px "Cinzel", serif`;
                 ctx.textBaseline = 'bottom';
@@ -475,10 +532,13 @@
         function loop() {
             requestAnimationFrame(loop);
             time += 0.01;
-            // Sử dụng clearRect thay vì vẽ lại nền để tối ưu hiệu suất khi độ phân giải cao
             ctx.clearRect(0, 0, width, height); 
-            drawBackground();
+            
+            // GỌI HÀM VẼ NỀN MỚI
+            drawMagicalBackground();
+
             if (isSnowing) snowParticles.forEach(p => { p.update(); p.draw(ctx); });
+            
             particles.forEach(p => p.update());
             particles.sort((a, b) => b.zDepth - a.zDepth);
             ctx.globalCompositeOperation = 'lighter';
