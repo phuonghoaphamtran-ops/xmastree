@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Magical Christmas Night</title>
+    <style>
+        /* --- FONTS --- */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Great+Vibes&family=Playfair+Display:ital@1&display=swap');
+
+        /* --- RESET & CORE --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #050200;
+            overflow: hidden;
+            font-family: 'Cinzel', serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- CANVAS --- */
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* --- VIGNETTE OVERLAY --- */
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* --- UI LAYER WRAPPER --- */
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- SCENE 1: THE CARD --- */
+        #card-overlay {
+            position: absolute;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 20;
+        }
+
+        .card-body {
+            background: radial-gradient(circle at center, #5e1212, #2b0505);
+            width: 85%;
+            max-width: 420px;
+            padding: 50px 30px;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 
+                0 0 0 10px #1a0506, 
+                0 0 0 12px #b38f00, 
+                0 30px 60px rgba(0,0,0,0.9);
+            position: relative;
+            transform: scale(1);
+            transition: transform 0.6s ease;
+        }
+
+        .card-corner {
+            position: absolute;
+            width: 30px; height: 30px;
+            border: 2px solid #b38f00; opacity: 0.8;
+        }
+        .tl { top: 15px; left: 15px; border-right: none; border-bottom: none; }
+        .tr { top: 15px; right: 15px; border-left: none; border-bottom: none; }
+        .bl { bottom: 15px; left: 15px; border-right: none; border-top: none; }
+        .br { bottom: 15px; right: 15px; border-left: none; border-top: none; }
+
+        .card-text {
+            font-family: 'Playfair Display', serif;
+            color: #fff0c4;
+            font-size: 1.6rem;
+            margin-bottom: 50px;
+            font-style: italic;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+            line-height: 1.6;
+            letter-spacing: 0.5px;
+        }
+
+        /* Wax Seal */
+        .wax-seal-container {
+            position: relative;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .wax-seal {
+            width: 90px; height: 90px;
+            background: radial-gradient(circle at 30% 30%, #ff5e5e, #8a0000);
+            border-radius: 50%;
+            box-shadow: inset 0 0 20px rgba(50, 0, 0, 0.8), 0 5px 15px rgba(0,0,0,0.5);
+            border: 4px solid #a31818; 
+            outline: 2px dashed rgba(255, 215, 0, 0.4); outline-offset: -8px;
+            cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .wax-seal span {
+            font-family: 'Great Vibes', cursive;
+            color: #ffd700; font-size: 1.8rem; font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(82, 16, 16, 0.9);
+            transform: rotate(-5deg);
+        }
+        .wax-seal:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 0 25px rgba(255, 50, 50, 0.5);
+            background: radial-gradient(circle at 30% 30%, #ff7070, #9e0000);
+        }
+
+        /* --- SCENE 2: WISH BUTTON (LOWERED) --- */
+        #wish-container {
+            position: absolute;
+            bottom: 50px; /* Hạ thấp xuống còn 30px so với đáy */
+            width: 100%;
+            text-align: center;
+            pointer-events: auto;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1.5s ease;
+            z-index: 15;
+        }
+
+        .btn-wish {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            color: #fff;
+            padding: 14px 45px;
+            border-radius: 50px;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            position: relative; overflow: hidden;
+        }
+        .btn-wish::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: 0.6s;
+        }
+        .btn-wish:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #FFD700;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+            transform: translateY(-3px);
+        }
+        .btn-wish:hover::before { left: 100%; }
+
+        /* Utils */
+        .hidden-overlay { opacity: 0 !important; transform: scale(1.15) !important; pointer-events: none !important; }
+        .visible-ui { opacity: 1 !important; transform: translateY(0) !important; }
+    </style>
+</head>
+<body>
+
+    <div class="vignette"></div>
+    <canvas id="canvas"></canvas>
+
+    <div id="ui-layer">
+        <div id="card-overlay">
+            <div class="card-body">
+                <div class="card-corner tl"></div><div class="card-corner tr"></div>
+                <div class="card-corner bl"></div><div class="card-corner br"></div>
+                <div class="card-text">A Christmas Wish for Everyone<br>From PH with love💌💖</div>
+                <div class="wax-seal-container">
+                    <div class="wax-seal" onclick="openLetter()"><span>Open</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="wish-container">
+            <button class="btn-wish" onclick="makeAWish()">Make a wish</button>
+        </div>
+    </div>
+
+    <script>
+        /* ================= STATE ================= */
+        let isTreeVisible = false;
+        let isSnowing = false;
+
+        function openLetter() {
+            document.getElementById('card-overlay').classList.add('hidden-overlay');
+            setTimeout(() => {
+                document.getElementById('wish-container').classList.add('visible-ui');
+            }, 1200);
+            isTreeVisible = true;
+        }
+
+        function makeAWish() {
+            if (!isSnowing) {
+                isSnowing = true;
+                initSnow();
+                const btn = document.querySelector('.btn-wish');
+                btn.style.transition = "opacity 1s, transform 1s";
+                btn.style.opacity = '0';
+                btn.style.transform = 'scale(0.8)';
+                btn.style.pointerEvents = 'none';
+            }
+        }
+
+        /* ================= CANVAS ENGINE ================= */
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+
+        let width, height;
+        let particles = [];
+        let snowParticles = [];
+        let time = 0;
+        
+        const CONFIG = {
+            particleCount: 900,
+            ribbonCount: 250,
+            snowCount: 250, 
+            baseRadiusRatio: 0.35,
+            heightRatio: 0.70, 
+            rotationSpeed: 0.006, 
+            focalLength: 800,
+            colors: {
+                gold:   { h: 45,  s: 100, l: 60 },
+                amber:  { h: 35,  s: 100, l: 50 },
+                red:    { h: 0,   s: 90,  l: 45 },
+                white:  { h: 50,  s: 20,  l: 95 }
+            }
+        };
+
+        const random = (min, max) => Math.random() * (max - min) + min;
+
+        // --- Tree Particle ---
+        class TreeParticle {
+            constructor(isRibbon, index, total) {
+                this.isRibbon = isRibbon;
+                this.init(index, total);
+            }
+            init(index, total) {
+                let h = (index / total);
+                if (!this.isRibbon) h += random(-0.02, 0.02); 
+                if (h < 0) h = 0; if (h > 1) h = 1;
+                this.hPercent = h;
+
+                const maxR = Math.min(width, height) * CONFIG.baseRadiusRatio;
+                const r = maxR * (1 - h);
+                this.angle = this.isRibbon ? h * Math.PI * 16 : random(0, Math.PI * 2);
+                this.radiusBase = r;
+                
+                const treeH = height * CONFIG.heightRatio;
+                this.yBase = (h - 0.5) * -treeH + (height * 0.02);
+
+                if (this.isRibbon) {
+                    this.sizeBase = random(2, 4);
+                    this.hue = CONFIG.colors.gold.h;
+                    this.sat = CONFIG.colors.gold.s;
+                    this.light = CONFIG.colors.gold.l;
+                    this.alphaBase = 1.0;
+                    this.flickerSpeed = 0;
+                } else {
+                    this.sizeBase = random(1.5, 3.5);
+                    const rand = Math.random();
+                    let c = (rand > 0.8) ? CONFIG.colors.red : 
+                            (rand > 0.4) ? CONFIG.colors.amber : 
+                            (rand > 0.2) ? CONFIG.colors.white : { h: 120, s: 40, l: 25 };
+                    this.hue = c.h; this.sat = c.s; this.light = c.l;
+                    this.alphaBase = random(0.5, 0.9);
+                    this.flickerSpeed = random(2, 5);
+                    this.flickerOffset = random(0, Math.PI * 2);
+                }
+            }
+            update() {
+                this.currentAngle = this.angle + (time * CONFIG.rotationSpeed);
+                const sway = Math.sin(time * 0.5 + this.hPercent * 5) * 5 * (1 - this.hPercent);
+                
+                const x3d = Math.cos(this.currentAngle) * this.radiusBase + sway;
+                const z3d = Math.sin(this.currentAngle) * this.radiusBase;
+                const y3d = this.yBase;
+                const depth = CONFIG.focalLength + z3d;
+                const scale = CONFIG.focalLength / depth;
+
+                this.x2d = width / 2 + x3d * scale;
+                this.y2d = height / 2 + y3d * scale;
+                this.scale = scale;
+                this.zDepth = z3d;
+
+                if (this.isRibbon) {
+                    const shine = Math.sin(time * 3 + this.hPercent * 10);
+                    this.light = 60 + shine * 15;
+                } else {
+                    const twinkle = Math.sin(time * this.flickerSpeed + this.flickerOffset);
+                    this.alpha = this.alphaBase * (0.6 + 0.4 * twinkle);
+                }
+            }
+            draw(ctx) {
+                if (this.scale <= 0) return;
+                const distAlpha = Math.max(0, Math.min(1, (1000 - this.zDepth) / 1500));
+                let finalAlpha = (this.isRibbon ? 1 : this.alpha) * distAlpha;
+                ctx.beginPath();
+                ctx.arc(this.x2d, this.y2d, this.sizeBase * this.scale, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light}%, ${finalAlpha})`;
+                ctx.fill();
+            }
+        }
+
+        // --- Snowflake ---
+        class Snowflake {
+            constructor() { this.reset(true); }
+            reset(initial = false) {
+                this.x = random(0, width);
+                this.y = initial ? random(-height, 0) : -20;
+                this.z = random(0.5, 2.0); 
+                this.size = random(12, 24); 
+                this.speed = random(1, 2.5);
+                this.angle = random(0, Math.PI * 2);
+                this.spinSpeed = random(-0.03, 0.03);
+                this.opacity = random(0.3, 0.8);
+                const chars = ['❄', '❅', '❆', '•']; 
+                this.char = chars[Math.floor(random(0, chars.length))];
+            }
+            update() {
+                this.y += this.speed * this.z;
+                this.x += Math.sin(time * 0.5 + this.z) * 0.8; 
+                this.angle += this.spinSpeed;
+                if (this.y > height + 30) this.reset();
+            }
+            draw(ctx) {
+                const s = this.size * (this.z * 0.6);
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.font = `${s}px sans-serif`;
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.textAlign = 'center';
+                ctx.fillText(this.char, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        // --- Core ---
+        function init() {
+            resize();
+            window.addEventListener('resize', resize);
+            for(let i=0; i<CONFIG.particleCount; i++) particles.push(new TreeParticle(false, i, CONFIG.particleCount));
+            for(let i=0; i<CONFIG.ribbonCount; i++) particles.push(new TreeParticle(true, i, CONFIG.ribbonCount));
+            loop();
+        }
+
+        function initSnow() {
+            let created = 0;
+            const interval = setInterval(() => {
+                snowParticles.push(new Snowflake());
+                created++;
+                if (created >= CONFIG.snowCount) clearInterval(interval);
+            }, 10);
+        }
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            if (particles.length > 0) {
+                 particles.forEach((p, i) => {
+                     const isRibbon = i >= CONFIG.particleCount;
+                     const total = isRibbon ? CONFIG.ribbonCount : CONFIG.particleCount;
+                     const idx = isRibbon ? (i - CONFIG.particleCount) : i;
+                     p.init(idx, total);
+                 });
+            }
+        }
+
+        function drawBackground() {
+            const grad = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, height);
+            grad.addColorStop(0, '#1a1005'); grad.addColorStop(0.5, '#0f0500'); grad.addColorStop(1, '#000000');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        // --- NEW: ADVANCED DIVINE STAR ---
+        function drawStar() {
+            const treeH = height * CONFIG.heightRatio;
+            const topY = height/2 - treeH/2 + (height * 0.02);
+            const cx = width / 2;
+            const cy = topY;
+            
+            // 1. Dynamic Pulse
+            const pulse = 1 + Math.sin(time * 4) * 0.1;
+            const size = (Math.min(width, height) * 0.05) * pulse;
+
+            ctx.save();
+            ctx.translate(cx, cy);
+
+            // 2. Rotating Rays (Divine Light)
+            ctx.save();
+            ctx.rotate(time * 0.2); // Slow rotation
+            ctx.globalCompositeOperation = 'lighter';
+            const rayCount = 8;
+            for(let i=0; i<rayCount; i++) {
+                ctx.rotate((Math.PI * 2) / rayCount);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, -size * 3);
+                ctx.strokeStyle = `rgba(255, 223, 100, ${0.1 + Math.sin(time * 2)*0.1})`;
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // 3. Main Star Glow (Radial Halo)
+            const glow = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, size * 2.5);
+            glow.addColorStop(0, "rgba(255, 255, 200, 0.8)");
+            glow.addColorStop(0.4, "rgba(255, 215, 0, 0.3)");
+            glow.addColorStop(1, "transparent");
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(0, 0, size * 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 4. Solid Bright Star Core
+            ctx.shadowBlur = 40; 
+            ctx.shadowColor = "#FFD700";
+            ctx.fillStyle = "#FFFACD";
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                ctx.lineTo(Math.cos((18 + i*72)*0.01745) * size, -Math.sin((18 + i*72)*0.01745) * size);
+                ctx.lineTo(Math.cos((54 + i*72)*0.01745) * (size/2.2), -Math.sin((54 + i*72)*0.01745) * (size/2.2));
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // 5. White Hot Center
+            ctx.fillStyle = "#FFFFFF";
+            ctx.beginPath();
+            ctx.arc(0, 0, size * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawText() {
+            if (!isTreeVisible) return;
+            const size = Math.min(width, height) * 0.05;
+            ctx.font = `700 ${size}px "Cinzel", serif`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+            const textGrad = ctx.createLinearGradient(width/2 - 150, 0, width/2 + 150, 0);
+            textGrad.addColorStop(0, '#a67c00'); textGrad.addColorStop(0.5, '#ffeaad'); textGrad.addColorStop(1, '#a67c00');
+            ctx.shadowBlur = 20; ctx.shadowColor = 'rgba(255, 200, 0, 0.3)';
+            ctx.fillStyle = textGrad;
+            ctx.fillText("Merry Christmas", width/2, height - 155); 
+            ctx.fillText("Wishing everyone happiness every day☃️", width/2, height - 110);
+            ctx.shadowBlur = 0;
+        }
+
+        function loop() {
+            requestAnimationFrame(loop);
+            time += 0.01;
+            drawBackground();
+            if (isSnowing) { snowParticles.forEach(p => { p.update(); p.draw(ctx); }); }
+            particles.forEach(p => p.update());
+            particles.sort((a, b) => b.zDepth - a.zDepth);
+            ctx.globalCompositeOperation = 'lighter';
+            particles.forEach(p => p.draw(ctx));
+            ctx.globalCompositeOperation = 'source-over';
+            drawStar();
+            drawText();
+        }
+        init();
+    </script>
+</body>
+</html>
