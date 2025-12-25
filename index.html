@@ -130,10 +130,10 @@
             background: radial-gradient(circle at 30% 30%, #ff7070, #9e0000);
         }
 
-        /* --- SCENE 2: WISH BUTTON --- */
+        /* --- SCENE 2: WISH BUTTON (Fixed) --- */
         #wish-container {
             position: absolute;
-            bottom: 50px; 
+            bottom: 40px; /* Cố định vị trí an toàn */
             width: 100%;
             text-align: center;
             pointer-events: auto;
@@ -175,26 +175,15 @@
         }
         .btn-wish:hover::before { left: 100%; }
 
-        /* --- MOBILE SPECIFIC FIXES --- */
+        /* --- MOBILE TWEAKS --- */
         @media only screen and (max-width: 768px) {
-            .card-body {
-                width: 90%;
-                padding: 40px 20px;
-            }
-            .card-text {
-                font-size: 1.3rem; /* Nhỏ hơn một chút để không bị tràn trên màn hình nhỏ */
-                margin-bottom: 30px;
-            }
-            .wax-seal {
-                width: 80px;
-                height: 80px;
-            }
-            #wish-container {
-                bottom: 12%; /* Dùng % để an toàn hơn với các loại màn hình dài */
-            }
+            .card-body { width: 90%; padding: 40px 20px; }
+            .card-text { font-size: 1.3rem; margin-bottom: 30px; }
+            .wax-seal { width: 80px; height: 80px; }
+            /* Đẩy nút lên một chút trên mobile để tránh chạm đáy màn hình */
+            #wish-container { bottom: 10%; } 
         }
 
-        /* Utils */
         .hidden-overlay { opacity: 0 !important; transform: scale(1.15) !important; pointer-events: none !important; }
         .visible-ui { opacity: 1 !important; transform: translateY(0) !important; }
     </style>
@@ -424,14 +413,14 @@
             const cx = width / 2;
             const cy = topY;
 
-            // 1. Dynamic Pulse
+            // Pulse
             const pulse = 1 + Math.sin(time * 4) * 0.1;
             const size = (Math.min(width, height) * 0.05) * pulse;
 
             ctx.save();
             ctx.translate(cx, cy);
 
-            // 2. Rotating Rays
+            // Rays
             ctx.save();
             ctx.rotate(time * 0.2); 
             ctx.globalCompositeOperation = 'lighter';
@@ -447,7 +436,7 @@
             }
             ctx.restore();
 
-            // 3. Glow
+            // Glow
             const glow = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, size * 2.5);
             glow.addColorStop(0, "rgba(255, 255, 200, 0.8)");
             glow.addColorStop(0.4, "rgba(255, 215, 0, 0.3)");
@@ -457,7 +446,7 @@
             ctx.arc(0, 0, size * 2.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // 4. Star
+            // Star Body
             ctx.shadowBlur = 40; 
             ctx.shadowColor = "#FFD700";
             ctx.fillStyle = "#FFFACD";
@@ -468,37 +457,58 @@
             }
             ctx.closePath();
             ctx.fill();
-
-            // 5. Center
             ctx.fillStyle = "#FFFFFF";
             ctx.beginPath();
             ctx.arc(0, 0, size * 0.2, 0, Math.PI * 2);
             ctx.fill();
-
             ctx.restore();
         }
 
-        // --- UPDATED: Responsive Draw Text ---
+        // --- LOGIC CHÍNH: VẼ CHỮ (Đã sửa lỗi mobile) ---
         function drawText() {
             if (!isTreeVisible) return;
-            const size = Math.min(width, height) * 0.05;
-            ctx.font = `700 ${size}px "Cinzel", serif`;
-            ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-            const textGrad = ctx.createLinearGradient(width/2 - 150, 0, width/2 + 150, 0);
-            textGrad.addColorStop(0, '#a67c00'); textGrad.addColorStop(0.5, '#ffeaad'); textGrad.addColorStop(1, '#a67c00');
-            ctx.shadowBlur = 20; ctx.shadowColor = 'rgba(255, 200, 0, 0.3)';
-            ctx.fillStyle = textGrad;
 
-            // Logic mới: Kiểm tra nếu màn hình nhỏ (mobile)
+            // Kiểm tra mobile
             const isMobile = width < 768;
-            
-            // Nếu là mobile, dùng % height để tính toán khoảng cách. 
-            // Nếu là desktop, dùng số pixel cố định như cũ (155 và 110).
-            const yOffset1 = isMobile ? height * 0.20 : 155;
-            const yOffset2 = isMobile ? height * 0.14 : 110;
 
-            ctx.fillText("Merry Christmas", width/2, height - yOffset1); 
-            ctx.fillText("Wishing everyone happiness every day☃️", width/2, height - yOffset2);
+            const textGrad = ctx.createLinearGradient(width/2 - 150, 0, width/2 + 150, 0);
+            textGrad.addColorStop(0, '#a67c00'); 
+            textGrad.addColorStop(0.5, '#ffeaad'); 
+            textGrad.addColorStop(1, '#a67c00');
+            ctx.shadowBlur = 20; 
+            ctx.shadowColor = 'rgba(255, 200, 0, 0.3)';
+            ctx.fillStyle = textGrad;
+            ctx.textAlign = 'center'; 
+            ctx.textBaseline = 'bottom';
+
+            if (isMobile) {
+                // == MOBILE MODE ==
+                // 1. Merry Christmas (To hơn một chút)
+                const titleSize = width * 0.085; // Cỡ chữ theo % màn hình
+                ctx.font = `700 ${titleSize}px "Cinzel", serif`;
+                
+                // Đẩy chữ lên cao hơn để tránh nút bấm (height - 30%)
+                const startY = height - (height * 0.25);
+                ctx.fillText("Merry Christmas", width/2, startY);
+
+                // 2. Lời chúc dài -> Tách thành 2 dòng
+                const subSize = width * 0.045; // Cỡ chữ nhỏ hơn
+                ctx.font = `400 ${subSize}px "Cinzel", serif`;
+                
+                // Dòng 1: Wishing everyone
+                ctx.fillText("Wishing everyone", width/2, startY + (subSize * 1.5));
+                // Dòng 2: happiness every day
+                ctx.fillText("happiness every day☃️", width/2, startY + (subSize * 3.0));
+
+            } else {
+                // == DESKTOP MODE (Giữ nguyên) ==
+                const desktopSize = Math.min(width, height) * 0.05;
+                ctx.font = `700 ${desktopSize}px "Cinzel", serif`;
+                
+                ctx.fillText("Merry Christmas", width/2, height - 155); 
+                ctx.fillText("Wishing everyone happiness every day☃️", width/2, height - 110);
+            }
+
             ctx.shadowBlur = 0;
         }
 
@@ -518,5 +528,4 @@
         init();
     </script>
 </body>
-
 </html>
