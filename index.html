@@ -130,10 +130,10 @@
             background: radial-gradient(circle at 30% 30%, #ff7070, #9e0000);
         }
 
-        /* --- SCENE 2: WISH BUTTON (LOWERED) --- */
+        /* --- SCENE 2: WISH BUTTON --- */
         #wish-container {
             position: absolute;
-            bottom: 50px; /* Hạ thấp xuống còn 30px so với đáy */
+            bottom: 50px; 
             width: 100%;
             text-align: center;
             pointer-events: auto;
@@ -174,6 +174,25 @@
             transform: translateY(-3px);
         }
         .btn-wish:hover::before { left: 100%; }
+
+        /* --- MOBILE SPECIFIC FIXES --- */
+        @media only screen and (max-width: 768px) {
+            .card-body {
+                width: 90%;
+                padding: 40px 20px;
+            }
+            .card-text {
+                font-size: 1.3rem; /* Nhỏ hơn một chút để không bị tràn trên màn hình nhỏ */
+                margin-bottom: 30px;
+            }
+            .wax-seal {
+                width: 80px;
+                height: 80px;
+            }
+            #wish-container {
+                bottom: 12%; /* Dùng % để an toàn hơn với các loại màn hình dài */
+            }
+        }
 
         /* Utils */
         .hidden-overlay { opacity: 0 !important; transform: scale(1.15) !important; pointer-events: none !important; }
@@ -235,7 +254,7 @@
         let particles = [];
         let snowParticles = [];
         let time = 0;
-        
+
         const CONFIG = {
             particleCount: 900,
             ribbonCount: 250,
@@ -270,7 +289,7 @@
                 const r = maxR * (1 - h);
                 this.angle = this.isRibbon ? h * Math.PI * 16 : random(0, Math.PI * 2);
                 this.radiusBase = r;
-                
+
                 const treeH = height * CONFIG.heightRatio;
                 this.yBase = (h - 0.5) * -treeH + (height * 0.02);
 
@@ -296,7 +315,7 @@
             update() {
                 this.currentAngle = this.angle + (time * CONFIG.rotationSpeed);
                 const sway = Math.sin(time * 0.5 + this.hPercent * 5) * 5 * (1 - this.hPercent);
-                
+
                 const x3d = Math.cos(this.currentAngle) * this.radiusBase + sway;
                 const z3d = Math.sin(this.currentAngle) * this.radiusBase;
                 const y3d = this.yBase;
@@ -399,13 +418,12 @@
             ctx.fillRect(0, 0, width, height);
         }
 
-        // --- NEW: ADVANCED DIVINE STAR ---
         function drawStar() {
             const treeH = height * CONFIG.heightRatio;
             const topY = height/2 - treeH/2 + (height * 0.02);
             const cx = width / 2;
             const cy = topY;
-            
+
             // 1. Dynamic Pulse
             const pulse = 1 + Math.sin(time * 4) * 0.1;
             const size = (Math.min(width, height) * 0.05) * pulse;
@@ -413,9 +431,9 @@
             ctx.save();
             ctx.translate(cx, cy);
 
-            // 2. Rotating Rays (Divine Light)
+            // 2. Rotating Rays
             ctx.save();
-            ctx.rotate(time * 0.2); // Slow rotation
+            ctx.rotate(time * 0.2); 
             ctx.globalCompositeOperation = 'lighter';
             const rayCount = 8;
             for(let i=0; i<rayCount; i++) {
@@ -429,7 +447,7 @@
             }
             ctx.restore();
 
-            // 3. Main Star Glow (Radial Halo)
+            // 3. Glow
             const glow = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, size * 2.5);
             glow.addColorStop(0, "rgba(255, 255, 200, 0.8)");
             glow.addColorStop(0.4, "rgba(255, 215, 0, 0.3)");
@@ -439,7 +457,7 @@
             ctx.arc(0, 0, size * 2.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // 4. Solid Bright Star Core
+            // 4. Star
             ctx.shadowBlur = 40; 
             ctx.shadowColor = "#FFD700";
             ctx.fillStyle = "#FFFACD";
@@ -451,7 +469,7 @@
             ctx.closePath();
             ctx.fill();
 
-            // 5. White Hot Center
+            // 5. Center
             ctx.fillStyle = "#FFFFFF";
             ctx.beginPath();
             ctx.arc(0, 0, size * 0.2, 0, Math.PI * 2);
@@ -460,6 +478,7 @@
             ctx.restore();
         }
 
+        // --- UPDATED: Responsive Draw Text ---
         function drawText() {
             if (!isTreeVisible) return;
             const size = Math.min(width, height) * 0.05;
@@ -469,8 +488,17 @@
             textGrad.addColorStop(0, '#a67c00'); textGrad.addColorStop(0.5, '#ffeaad'); textGrad.addColorStop(1, '#a67c00');
             ctx.shadowBlur = 20; ctx.shadowColor = 'rgba(255, 200, 0, 0.3)';
             ctx.fillStyle = textGrad;
-            ctx.fillText("Merry Christmas", width/2, height - 155); 
-            ctx.fillText("Wishing everyone happiness every day☃️", width/2, height - 110);
+
+            // Logic mới: Kiểm tra nếu màn hình nhỏ (mobile)
+            const isMobile = width < 768;
+            
+            // Nếu là mobile, dùng % height để tính toán khoảng cách. 
+            // Nếu là desktop, dùng số pixel cố định như cũ (155 và 110).
+            const yOffset1 = isMobile ? height * 0.20 : 155;
+            const yOffset2 = isMobile ? height * 0.14 : 110;
+
+            ctx.fillText("Merry Christmas", width/2, height - yOffset1); 
+            ctx.fillText("Wishing everyone happiness every day☃️", width/2, height - yOffset2);
             ctx.shadowBlur = 0;
         }
 
